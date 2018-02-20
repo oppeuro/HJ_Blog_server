@@ -1,5 +1,5 @@
 var express = require('express');
-var Article = require('../model/model')
+var Article = require('../model/article')
 var router = express.Router();
 
 
@@ -21,11 +21,11 @@ router.get('/api/getArticle/:id',function (req, res, next) {
 })
 
 router.get('/api/getArticleNum',function (req, res, next) {
-    Article.find({},function(err, resdata) {
+    Article.count({},function(err, resdata) {
         if(err) {
             console.log(err);
         }else {
-            res.send(resdata);
+            res.send({num: resdata});
         }
     })
 })
@@ -46,10 +46,11 @@ router.get('/api/getArticleNum',function (req, res, next) {
 
 
 router.post('/api/getArticleList',function (req, res, next) {
-    var page =  Number.parseInt(req.body.page);
-    var adminPageSize = Number.parseInt(req.body.pageSize);
-    var skipNum = page*adminPageSize;
-    Article.find({}).skip(skipNum).limit(adminPageSize).exec(function(err, data) {
+    var page =  Number.parseInt(req.body.page) || 0;
+    var adminPageSize = Number.parseInt(req.body.pageSize) || 0;
+    var skipNum = page*adminPageSize || 0;
+    console.log(page,adminPageSize, skipNum);
+    Article.find({}).skip(skipNum).sort({isTop:-1,_id:1}).limit(adminPageSize).exec(function(err, data) {
         if(err) {
             console.log(err);
         }else {
@@ -59,31 +60,40 @@ router.post('/api/getArticleList',function (req, res, next) {
 })
 
 router.post('/api/updateArticle',function (req, res, next) {
-    var articleID = {_id:req.body._id};
-    var updateData = req.body
-    //console.log(req.body);
-    // var updateData = {
-    //     date:req.body.date,name:req.body.name,
-    //     type:req.body.type,intro:req.body.intro,
-    //     resource:req.body.resource,data:req.body.data}
+    var data = req.body;
+    Object.keys(data).forEach(function(key) {
+        try {data[key] = JSON.parse(data[key])}catch (e) {}
+    })
+    var articleID = {_id:data._id};
+    var updateData = {
+        updateTime:data.updateTime,name:data.name,
+        type:data.type,intro:data.intro,isTop:data.isTop,
+        resource:data.resource,data:data.data
+    }
+    if(req.body.bgImgName) {
+        updateData.bgImgName = req.body.bgImgName;
+    }
     Article.update(articleID, updateData,function (err, data) {
         if(err) {
             console.log(err)
         }else {
-            res.send("更新成功");
+            res.send({update:true});
         }
     });
 })
 
 
 router.post('/api/newArticle',function (req, res, next) {
-    console.log(req.body)
-    var article = new Article(req.body);
+    var recData = req.body;
+    Object.keys(recData).forEach(function(key) {
+        try {recData[key] = JSON.parse(recData[key])}catch (e) {}
+    })
+    var article = new Article(recData);
     article.save(function (err, data) {
         if(err) {
             console.log(err)
         }else {
-            res.send("上传成功");
+            res.send({upload: true});
         }
     });
 })

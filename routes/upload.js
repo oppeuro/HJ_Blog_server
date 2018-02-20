@@ -27,7 +27,7 @@ router.post('/img/:name',function (req, res, next) {
             var date = new Date().toLocaleDateString();
             fs.renameSync(file[1].path,form.uploadDir+"/"+date+'_'+fileName+"."+String(types[types.length-1]));
         })
-        res.send('good')
+        res.send({uploadImg: true});
     });
 })
 

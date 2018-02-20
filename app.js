@@ -5,8 +5,11 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-var index = require('./routes/index');
+var article = require('./routes/article');
+var tags = require('./routes/tags');
 var upload = require('./routes/upload');
+var login = require('./routes/login');
+var del = require('./routes/del');
 var users = require('./routes/users');
 
 var app = express();
@@ -33,7 +36,10 @@ app.all('*', function(req, res, next) {
     next();
 });
 
-app.use('/', index);
+app.use('/', article);
+app.use('/tags', tags);
+app.use('/login', login);
+app.use('/del', del);
 app.use('/upload', upload);
 app.use('/users', users);
 
